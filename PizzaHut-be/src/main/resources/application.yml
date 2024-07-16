@@ -18,9 +18,12 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MariaDBDialect
         format_sql: true
+    hibernate:
+      ddl-auto: update
   data:
     redis:
-      host-port: ${REDIS_HOST_PORT:127.0.0.1:6379}
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:30061999}
       db-default: ${REDIS_DB_DEFAULT:0}
       timeout: 60000
@@ -31,7 +34,7 @@ spring:
     encoding: UTF-8
 
 database:
-  jdbcUrl : ${DB_URL:jdbc:mysql://localhost:3306/pizza-hut}
+  jdbcUrl : ${DB_URL:jdbc:mysql://localhost:3306/pizza_hut}
   username: ${DB_USERNAME:root}
   password: ${DB_PASSWORD:30061999}
 
@@ -53,4 +56,8 @@ minio:
   bucket: images
   region: us-east-1
   secure: false
+#Swagger ui enabled
+springdoc:
+  swagger-ui:
+    enabled: ${SWAGGER_UI_ENABLED:true}
 
