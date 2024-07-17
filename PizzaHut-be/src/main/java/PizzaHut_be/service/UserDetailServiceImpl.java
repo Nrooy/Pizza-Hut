@@ -27,7 +27,7 @@ public class UserDetailServiceImpl implements UserDetailsService {
         return null;
     }
 
-    public UserDetails loadUserById(long id) throws UsernameNotFoundException {
+    public UserDetails loadUserById(String id) throws UsernameNotFoundException {
         Optional<UserModel> userModel = repository.findById(id);
 
         if(userModel.isPresent()){

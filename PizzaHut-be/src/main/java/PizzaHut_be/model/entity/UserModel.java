@@ -10,7 +10,7 @@ import lombok.Data;
 @Table(name = "user")
 public class UserModel {
     @Id
-    private int id;
+    private String id;
 
     private String name;
 

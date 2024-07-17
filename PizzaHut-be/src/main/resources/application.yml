@@ -60,4 +60,11 @@ minio:
 springdoc:
   swagger-ui:
     enabled: ${SWAGGER_UI_ENABLED:true}
+#config login google sso
+google:
+  client:
+    id: ${GOOGLE_ID:392422801-urmoaa07figp0khtqmlac2us0ojtvelf.apps.googleusercontent.com}
+    secret: ${GOOGLE_SECRET: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}
+  token:
+    path: "https://oauth2.googleapis.com/token"
 
