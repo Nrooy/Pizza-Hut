@@ -2,7 +2,7 @@ package PizzaHut_be.service;
 
 import PizzaHut_be.config.security.UserDetailImpl;
 import PizzaHut_be.model.entity.UserModel;
-import PizzaHut_be.repository.UserModelRepository;
+import PizzaHut_be.dao.repository.UserModelRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

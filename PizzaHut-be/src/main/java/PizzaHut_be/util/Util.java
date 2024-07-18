@@ -1,5 +1,6 @@
 package PizzaHut_be.util;
 
+import PizzaHut_be.model.constant.FileConstant;
 import PizzaHut_be.model.constant.RedisConstant;
 import lombok.experimental.UtilityClass;
 
@@ -15,5 +16,9 @@ public class Util {
 
     public String generateRedisKey(String... arg) {
         return String.join(RedisConstant.SEPARATOR, arg);
+    }
+
+    public String generateFileDirectory(String... arg) {
+        return String.join(FileConstant.DIRECTORY_DIVIDE, arg);
     }
 }

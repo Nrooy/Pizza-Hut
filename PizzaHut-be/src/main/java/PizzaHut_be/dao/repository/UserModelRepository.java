@@ -1,4 +1,4 @@
-package PizzaHut_be.repository;
+package PizzaHut_be.dao.repository;
 
 import PizzaHut_be.model.entity.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;

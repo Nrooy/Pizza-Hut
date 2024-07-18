@@ -1,16 +1,20 @@
-package PizzaHut_be.model.entity;
+package PizzaHut_be.model.dto.response;
 
-import jakarta.persistence.Entity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import PizzaHut_be.util.DateUtil;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Data
-@Entity
-@Table(name = "user")
-public class UserModel {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ResponseUser {
     @Id
     private String id;
 
@@ -24,6 +28,7 @@ public class UserModel {
 
     private String email;
 
+    @JsonFormat(pattern = DateUtil.RESPONSE_DATE_FORMAT)
     private LocalDate birthday;
 
     private String address;
