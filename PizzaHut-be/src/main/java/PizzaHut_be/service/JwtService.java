@@ -1,5 +1,6 @@
 package PizzaHut_be.service;
 
+import PizzaHut_be.dao.UserDao;
 import PizzaHut_be.model.constant.RedisPrefixKeyConstant;
 import PizzaHut_be.util.Util;
 import io.jsonwebtoken.*;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Data
@@ -19,7 +21,7 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtService {
     private final JedisPool jedisPool;
-
+    private final UserDao userDao;
     @Value("${spring.jwt.secret}")
     private String jwtSecret;
 
@@ -35,9 +37,9 @@ public class JwtService {
         Date now = new Date();
         Date expDate = new Date(now.getTime() + jwtExpirationMs);
         String tokenGenerate = Jwts.builder()
-                .subject(userId)
-                .issuedAt(now)
-                .expiration(expDate)
+                .setSubject(userId)
+                .setIssuedAt(now)
+                .setExpiration(expDate)
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
         Jedis jedis = null;
@@ -95,7 +97,11 @@ public class JwtService {
             String userId = null;
 
             try {
-                Claims claims = Jwts.parser().setSigningKey(jwtSecret).build().parseSignedClaims(authToken).getPayload();
+                Claims claims = Jwts.parserBuilder()
+                        .setSigningKey(jwtSecret.getBytes(StandardCharsets.UTF_8))
+                        .build()
+                        .parseClaimsJws(authToken)
+                        .getBody();
 
                 userId = claims.getSubject();
             } catch (Exception e) {
@@ -122,6 +128,63 @@ public class JwtService {
             }
         }
         return false;
+    }
+
+    /***
+     * Generate refresh token and save to redis
+     * @param userId
+     * @return
+     */
+    public String generateRefreshToken(String userId) {
+        Date now = new Date();
+        Date expDate = new Date(now.getTime() + jwtExpirationMs);
+        String refreshToken = Jwts.builder()
+                .setSubject(userId)
+                .setIssuedAt(now)
+                .setExpiration(expDate)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            String key = Util.generateRedisKey(RedisPrefixKeyConstant.REFRESH_TOKEN, refreshToken);
+            jedis.set(key, userId);
+            jedis.expire(key, jwtExpirationMs / 1000);
+        } catch (Exception e) {
+            log.error("Save refresh token to redis failed: ", e);
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
+        }
+
+        return refreshToken;
+    }
+
+    /***
+     * Refresh JWT token using refresh token
+     * @param refreshToken
+     * @return
+     */
+    public String refreshToken(String refreshToken) {
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            String userId = jedis.get(Util.generateRedisKey(RedisPrefixKeyConstant.REFRESH_TOKEN, refreshToken));
+            if (userId != null) {
+                return generateJwtTokenByUserId(userId);
+            } else {
+                log.error("Invalid refresh token");
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("Failed to refresh token: ", e);
+            return null;
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
+        }
     }
 
 }

@@ -1,21 +1,36 @@
 package PizzaHut_be.controller;
 
+import PizzaHut_be.model.builder.ResponseBuilder;
 import PizzaHut_be.model.dto.ResponseDto;
+import PizzaHut_be.model.dto.request.LoginOtpRequest;
+import PizzaHut_be.model.dto.request.LoginRequest;
 import PizzaHut_be.model.dto.request.LoginSocialRequest;
+import PizzaHut_be.model.dto.request.TokenRefreshRequest;
+import PizzaHut_be.model.dto.response.LoginOtpResponse;
+import PizzaHut_be.model.dto.response.LoginResponse;
+import PizzaHut_be.model.dto.response.TokenRefreshResponse;
+import PizzaHut_be.model.entity.UserModel;
+import PizzaHut_be.model.enums.StatusCodeEnum;
+import PizzaHut_be.service.GoogleService;
+import PizzaHut_be.service.LanguageService;
+import PizzaHut_be.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.CustomLog;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import PizzaHut_be.service.GoogleService;
+import java.util.Optional;
+
 @CustomLog
 @RestController
 @RequestMapping("/user")
@@ -23,6 +38,10 @@ import PizzaHut_be.service.GoogleService;
 public class UserController {
 
     private final GoogleService googleService;
+
+    private final UserService userService;
+
+    private final LanguageService languageService;
 
     @Operation(summary = "Login sso by google",
             description = "Api login by google account",
@@ -128,4 +147,15 @@ public class UserController {
     public ResponseEntity<ResponseDto<Object>> loginGoogleSSO(@RequestBody LoginSocialRequest loginSocialRequest) {
         return googleService.loginGoogleSSO(loginSocialRequest);
     }
+
+    @PostMapping("/request-login")
+    public ResponseEntity<ResponseDto<LoginOtpResponse>> requestLogin(@Valid @RequestBody LoginOtpRequest loginOtpRequest) {
+        return userService.requestLogin(loginOtpRequest);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ResponseDto<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
+        return userService.login(loginRequest);
+    }
+
 }
