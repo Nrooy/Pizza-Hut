@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class LoginRequest {
     @NotBlank
     @Size(min = 6, max = 50)
-    private String username;
+    private String email;
 
     @NotBlank(message = "{validation.messages.password.required}")
     private String password;

@@ -9,7 +9,7 @@ import PizzaHut_be.model.dto.request.LoginOtpRequest;
 import PizzaHut_be.model.dto.request.LoginRequest;
 import PizzaHut_be.model.dto.request.RegisterRequest;
 import PizzaHut_be.model.dto.response.*;
-import PizzaHut_be.model.entity.UserModel;
+import PizzaHut_be.model.entity.Client;
 import PizzaHut_be.model.enums.OtpDestinationEnum;
 import PizzaHut_be.model.enums.OtpRequestTypeEnum;
 import PizzaHut_be.model.enums.StatusCodeEnum;
@@ -36,7 +36,7 @@ public class UserService {
     private final CommonMapper mapper;
     private final UserModelRepository userModelRepository;
 
-    public UserModel getUserInfoFromContext() {
+    public Client getUserInfoFromContext() {
         try {
             UserDetailImpl userDetails = (UserDetailImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -59,8 +59,7 @@ public class UserService {
     public ResponseEntity<ResponseDto<LoginOtpResponse>> requestRegister(LoginOtpRequest loginOtpRequest) {
 
         String email = loginOtpRequest.getEmail();
-        String username = loginOtpRequest.getUsername();
-        UserModel userModel = userDao.findOneUserModel(username);
+        Client userModel = userDao.findOneUserModel(email);
         LoginOtpResponse loginOtpResponse = new LoginOtpResponse();
         loginOtpResponse.setHasSentOtp(true);
 
@@ -108,9 +107,9 @@ public class UserService {
         if (userResponse.getUserModel() == null) {
             return userResponse.getResponse();
         } else {
-            UserModel userModel = userResponse.getUserModel();
+            Client userModel = userResponse.getUserModel();
             LoginResponse loginResponse = new LoginResponse();
-            loginResponse.setAccessToken(jwtService.generateJwtTokenByUserId(userModel.getId()));
+            loginResponse.setAccessToken(jwtService.generateJwtTokenByUserId(userModel.getClientId()));
             loginResponse.setUserInfo(mapper.map(userModel, ResponseUser.class));
 
             return ResponseBuilder.okResponse(
@@ -121,9 +120,9 @@ public class UserService {
     }
 
     public UserResponse getLoginUserResponse(LoginRequest loginRequest) {
-        String username = loginRequest.getUsername();
+        String username = loginRequest.getEmail();
         String passwordOrOtp = loginRequest.getPassword();
-        UserModel userModel = userModelRepository.findByUsername(username).orElse(null);
+        Client userModel = userModelRepository.findByEmail(username).orElse(null);
 
         if (userModel != null && userModel.getPassword().equals(passwordOrOtp)) {
             UserResponse otpLoginResponse = new UserResponse<>();
@@ -138,25 +137,25 @@ public class UserService {
                 StatusCodeEnum.LOGIN0209), false);
     }
 
-    public UserResponse getRegisterUserResponse(LoginRequest loginRequest) {
-        String username = loginRequest.getUsername();
-        String passwordOrOtp = loginRequest.getPassword();
-        log.info(loginRequest.getUsername());
-        UserModel userModel = userDao.findOneUserModel(username);
-        log.info(userModel.getEmail(), userModel);
+//    public UserResponse getRegisterUserResponse(LoginRequest loginRequest) {
+//        String username = loginRequest.getUsername();
+//        String passwordOrOtp = loginRequest.getPassword();
+//        log.info(loginRequest.getUsername());
+//        Client userModel = userDao.findOneUserModel(username);
+//        log.info(userModel.getEmail(), userModel);
+//
+//        if (passwordOrOtp != null) {
+//            UserResponse otpLoginResponse = handleOtpLogin(userModel, username, passwordOrOtp);
+//            if (otpLoginResponse != null) {
+//                return otpLoginResponse;
+//            }
+//        }
+//        return new UserResponse(null, ResponseBuilder.badRequestResponse(
+//                languageService.getMessage("login.password.or.otp.invalid"),
+//                StatusCodeEnum.LOGIN0209), false);
+//    }
 
-        if (passwordOrOtp != null) {
-            UserResponse otpLoginResponse = handleOtpLogin(userModel, username, passwordOrOtp);
-            if (otpLoginResponse != null) {
-                return otpLoginResponse;
-            }
-        }
-        return new UserResponse(null, ResponseBuilder.badRequestResponse(
-                languageService.getMessage("login.password.or.otp.invalid"),
-                StatusCodeEnum.LOGIN0209), false);
-    }
-
-    private UserResponse handleOtpLogin(UserModel userModel, String username, String passwordOrOtp) {
+    private UserResponse handleOtpLogin(Client userModel, String username, String passwordOrOtp) {
         if (otpService.verifyOtp(username, OtpRequestTypeEnum.LOGIN, passwordOrOtp)) {
             UserResponse userResponse = new UserResponse();
             userResponse.setUserModel(userModel);
@@ -166,8 +165,8 @@ public class UserService {
     }
 
     public ResponseEntity<ResponseDto<RegisterResponse>> register(RegisterRequest registerRequest) {
-        String username = registerRequest.getUsername();
-        UserModel userModel = userDao.findOneUserModel(username);
+        String email= registerRequest.getEmail();
+        Client userModel = userModelRepository.findByEmail(email).orElse(null);
         String passwordOrOtp = registerRequest.getPasswordOrOtp();
 
 
@@ -177,8 +176,8 @@ public class UserService {
         } else {
 
             if (otpService.verifyOtp(registerRequest.getEmail(), OtpRequestTypeEnum.LOGIN, passwordOrOtp)) {
-                UserModel newUserModel = mapper.map(registerRequest, UserModel.class);
-                newUserModel.setId(UUID.randomUUID().toString());
+                Client newUserModel = mapper.map(registerRequest, Client.class);
+                newUserModel.setClientId(UUID.randomUUID().toString());
                 userModelRepository.save(newUserModel);
                 RegisterResponse registerResponse = new RegisterResponse();
                 registerResponse = mapper.map(registerRequest, RegisterResponse.class);

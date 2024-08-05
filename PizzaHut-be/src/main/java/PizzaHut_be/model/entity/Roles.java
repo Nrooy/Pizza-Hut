@@ -18,5 +18,5 @@ public class Roles {
     private String name;
 
     @ManyToMany(mappedBy = "roles")
-    private Set<UserModel> users;
+    private Set<Client> users;
 }

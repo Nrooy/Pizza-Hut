@@ -1,14 +1,13 @@
 package PizzaHut_be.controller;
 
-import PizzaHut_be.model.builder.ResponseBuilder;
 import PizzaHut_be.model.dto.ResponseDto;
-import PizzaHut_be.model.dto.request.*;
+import PizzaHut_be.model.dto.request.LoginOtpRequest;
+import PizzaHut_be.model.dto.request.LoginRequest;
+import PizzaHut_be.model.dto.request.LoginSocialRequest;
+import PizzaHut_be.model.dto.request.RegisterRequest;
 import PizzaHut_be.model.dto.response.LoginOtpResponse;
 import PizzaHut_be.model.dto.response.LoginResponse;
 import PizzaHut_be.model.dto.response.RegisterResponse;
-import PizzaHut_be.model.dto.response.TokenRefreshResponse;
-import PizzaHut_be.model.entity.UserModel;
-import PizzaHut_be.model.enums.StatusCodeEnum;
 import PizzaHut_be.service.GoogleService;
 import PizzaHut_be.service.LanguageService;
 import PizzaHut_be.service.UserService;
@@ -20,14 +19,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.CustomLog;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Optional;
 
 @CustomLog
 @RestController

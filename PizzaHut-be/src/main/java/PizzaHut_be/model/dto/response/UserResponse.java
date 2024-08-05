@@ -1,12 +1,11 @@
 package PizzaHut_be.model.dto.response;
 
 import PizzaHut_be.model.dto.ResponseDto;
-import PizzaHut_be.model.entity.UserModel;
+import PizzaHut_be.model.entity.Client;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.catalina.User;
 import org.springframework.http.ResponseEntity;
 
 @Data
@@ -14,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponse<T> {
-    private UserModel userModel;
+    private Client userModel;
     private ResponseEntity<ResponseDto<T>> response;
     private boolean isNewUser;
 }

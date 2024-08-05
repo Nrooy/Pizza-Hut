@@ -12,9 +12,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class LoginOtpRequest {
-    @NotBlank
-    @Size(min = 6, max = 50)
-    private String username;
-
     private String email;
 }

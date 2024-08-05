@@ -1,6 +1,6 @@
 package PizzaHut_be.config.security;
 
-import PizzaHut_be.model.entity.UserModel;
+import PizzaHut_be.model.entity.Client;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,7 +11,7 @@ import java.util.Collection;
 @Data
 @AllArgsConstructor
 public class UserDetailImpl implements UserDetails {
-    UserModel userModel;
+    Client userModel;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

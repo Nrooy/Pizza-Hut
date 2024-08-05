@@ -3,40 +3,38 @@ package PizzaHut_be.model.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.Set;
-import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "user")
-public class UserModel {
+@Table(name = "client")
+public class Client {
     @Id
-    private String id;
+    @Column(name = "client_id")
+    private String clientId;
 
-    private String firstName;
+    @Column(name = "name")
+    private String name;
 
-    private String lastName;
+    @Column(name = "birthday")
+    private Date birthday;
 
-    private String password;
-
-    private String username;
-
-    private String email;
-
-    private LocalDate birthday;
-
-    private String address;
-
-    private String locate;
-
+    @Column(name = "gender")
     private String gender;
 
+    @Column(name = "phone")
     private String phone;
 
-    private String description;
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "password")
+    private String password;
 
     private String avatar;
+
+    private Long point;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

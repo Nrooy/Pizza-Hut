@@ -10,7 +10,7 @@ import PizzaHut_be.model.dto.request.LoginSocialRequest;
 import PizzaHut_be.model.dto.response.LoginResponse;
 import PizzaHut_be.model.dto.response.ResponseUser;
 import PizzaHut_be.model.dto.response.UserResponse;
-import PizzaHut_be.model.entity.UserModel;
+import PizzaHut_be.model.entity.Client;
 import PizzaHut_be.model.enums.StatusCodeEnum;
 import PizzaHut_be.model.mapper.CommonMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
@@ -59,13 +59,13 @@ public class GoogleService {
      */
     public ResponseEntity<ResponseDto<Object>> loginGoogleSSO(LoginSocialRequest loginSocialRequest) {
         UserResponse userResponse = getGoogleUserInfoResponse(loginSocialRequest);
-        UserModel userModel = userResponse.getUserModel();
+        Client userModel = userResponse.getUserModel();
 
         if (userModel == null) {
             return userResponse.getResponse();
         }
         LoginResponse loginResponse = new LoginResponse();
-        loginResponse.setAccessToken(jwtService.generateJwtTokenByUserId(userResponse.getUserModel().getId()));
+        loginResponse.setAccessToken(jwtService.generateJwtTokenByUserId(userResponse.getUserModel().getClientId()));
         loginResponse.setUserInfo(mapper.map(userResponse.getUserModel(), ResponseUser.class));
         if (userResponse.isNewUser()) {
             return ResponseBuilder.okResponse(
@@ -121,7 +121,7 @@ public class GoogleService {
                 String id = payload.getSubject();
                 String email = payload.getEmail();
 
-                UserModel userModel = new UserModel();
+                Client userModel = new Client();
                 userModel = userModelRepository.findById(id).orElse(null);
 
                 if (userModel == null) {
@@ -140,7 +140,7 @@ public class GoogleService {
                             .phoneNumber((String) payload.get("phone_number"))
                             .build();
 
-                    UserModel newUser = mapper.map(googleUserDto, UserModel.class);
+                    Client newUser = mapper.map(googleUserDto, Client.class);
                     try {
                         userModelRepository.save(newUser);
                     } catch (Exception e) {
@@ -154,7 +154,7 @@ public class GoogleService {
                     //upload avatar get from google image url to minio server
                     String avatarUploadUrl = fileService.uploadImageFileFromImageUrl(
                             newUser.getAvatar(),
-                            newUser.getId(),
+                            newUser.getClientId(),
                             TypeUploadConstant.AVATAR
                     );
 

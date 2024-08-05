@@ -3,7 +3,7 @@ package PizzaHut_be.dao;
 import PizzaHut_be.dao.repository.UserModelRepository;
 import PizzaHut_be.model.constant.RedisPrefixKeyConstant;
 import PizzaHut_be.model.dto.UserModelQueryDto;
-import PizzaHut_be.model.entity.UserModel;
+import PizzaHut_be.model.entity.Client;
 import PizzaHut_be.model.enums.AccountStatusEnum;
 import PizzaHut_be.model.mapper.CommonMapper;
 import PizzaHut_be.util.Util;
@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @CustomLog
 @Component
-public class UserDao extends BaseDao<UserModel, String> {
+public class UserDao extends BaseDao<Client, String> {
 
     private final UserModelRepository userModelRepository;
 
@@ -29,17 +29,17 @@ public class UserDao extends BaseDao<UserModel, String> {
     private final CommonMapper mapper;
 
     @Override
-    public UserModel findOneById(String s) {
+    public Client findOneById(String s) {
         return null;
     }
 
     @Override
-    public UserModel save(UserModel entity) {
+    public Client save(Client entity) {
         return null;
     }
 
-    public UserModel update(UserModel entity) {
-        UserModel updatedUser;
+    public Client update(Client entity) {
+        Client updatedUser;
         try {
             updatedUser = userModelRepository.save(entity);
         } catch (Exception e) {
@@ -50,23 +50,23 @@ public class UserDao extends BaseDao<UserModel, String> {
     }
 
     @SneakyThrows
-    public UserModel findOneUserModel(@NonNull String query) {
+    public Client findOneUserModel(@NonNull String query) {
         Jedis jedis = null;
         try {
             jedis = createConnection();
             String jsonString = jedis.get(Util.generateRedisKey(RedisPrefixKeyConstant.LOGIN, query));
 
-            Optional<UserModel> userModel = userModelRepository.findOneByEmail(query);
+            Optional<Client> userModel = userModelRepository.findOneByEmail(query);
             if (userModel.isPresent()) {
                 new Thread(() -> {
                     saveUserInfoDataToRedis(userModel.get());
                 }).start();
             }
 
-            return  userModel.orElse(null);
+            return userModel.orElse(null);
         } catch (Exception e) {
             throw e;
-        }finally {
+        } finally {
             if (jedis != null) {
                 jedis.close();
             }
@@ -74,11 +74,11 @@ public class UserDao extends BaseDao<UserModel, String> {
     }
 
     @SneakyThrows
-    public void saveUserInfoDataToRedis(UserModel userModel) {
+    public void saveUserInfoDataToRedis(Client userModel) {
 
         UserModelQueryDto userModelQueryDto = UserModelQueryDto
                 .builder()
-                .id(userModel.getId())
+                .id(userModel.getClientId())
                 .status(AccountStatusEnum.ACTIVE).build();
 
         Jedis jedis = null;
@@ -87,12 +87,12 @@ public class UserDao extends BaseDao<UserModel, String> {
             jedis = createConnection();
             String userJson = mapper.writeValueAsString(userModel);
             String userQueryValueJson = mapper.writeValueAsString(userModelQueryDto);
-            jedis.set(Util.generateRedisKey(RedisPrefixKeyConstant.USER, userModel.getId()), userJson);
+            jedis.set(Util.generateRedisKey(RedisPrefixKeyConstant.USER, userModel.getClientId()), userJson);
 
             if (!Util.isNullOrEmpty(userModel.getEmail())) {
                 jedis.set(Util.generateRedisKey(RedisPrefixKeyConstant.LOGIN, userModel.getEmail()), userQueryValueJson);
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("Save user basic info in redis failed: ", e);
             throw e;
         } finally {
@@ -109,7 +109,7 @@ public class UserDao extends BaseDao<UserModel, String> {
     }
 
     @Override
-    public void delete(UserModel entity) {
+    public void delete(Client entity) {
 
     }
 
