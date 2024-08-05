@@ -2,12 +2,10 @@ package PizzaHut_be.controller;
 
 import PizzaHut_be.model.builder.ResponseBuilder;
 import PizzaHut_be.model.dto.ResponseDto;
-import PizzaHut_be.model.dto.request.LoginOtpRequest;
-import PizzaHut_be.model.dto.request.LoginRequest;
-import PizzaHut_be.model.dto.request.LoginSocialRequest;
-import PizzaHut_be.model.dto.request.TokenRefreshRequest;
+import PizzaHut_be.model.dto.request.*;
 import PizzaHut_be.model.dto.response.LoginOtpResponse;
 import PizzaHut_be.model.dto.response.LoginResponse;
+import PizzaHut_be.model.dto.response.RegisterResponse;
 import PizzaHut_be.model.dto.response.TokenRefreshResponse;
 import PizzaHut_be.model.entity.UserModel;
 import PizzaHut_be.model.enums.StatusCodeEnum;
@@ -148,14 +146,20 @@ public class UserController {
         return googleService.loginGoogleSSO(loginSocialRequest);
     }
 
-    @PostMapping("/request-login")
+    @PostMapping("/request-register")
     public ResponseEntity<ResponseDto<LoginOtpResponse>> requestLogin(@Valid @RequestBody LoginOtpRequest loginOtpRequest) {
-        return userService.requestLogin(loginOtpRequest);
+        return userService.requestRegister(loginOtpRequest);
     }
 
     @PostMapping("/login")
     public ResponseEntity<ResponseDto<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
         return userService.login(loginRequest);
     }
+
+    @PostMapping("/register")
+    public ResponseEntity<ResponseDto<RegisterResponse>> login(@Valid @RequestBody RegisterRequest registerRequest) {
+        return userService.register(registerRequest);
+    }
+
 
 }

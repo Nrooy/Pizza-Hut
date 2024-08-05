@@ -1,21 +1,19 @@
 package PizzaHut_be.service;
 
+import PizzaHut_be.config.security.UserDetailImpl;
 import PizzaHut_be.dao.UserDao;
 import PizzaHut_be.dao.repository.UserModelRepository;
 import PizzaHut_be.model.builder.ResponseBuilder;
 import PizzaHut_be.model.dto.ResponseDto;
 import PizzaHut_be.model.dto.request.LoginOtpRequest;
 import PizzaHut_be.model.dto.request.LoginRequest;
-import PizzaHut_be.model.dto.response.LoginOtpResponse;
-import PizzaHut_be.model.dto.response.LoginResponse;
-import PizzaHut_be.model.dto.response.ResponseUser;
-import PizzaHut_be.model.dto.response.UserResponse;
+import PizzaHut_be.model.dto.request.RegisterRequest;
+import PizzaHut_be.model.dto.response.*;
 import PizzaHut_be.model.entity.UserModel;
 import PizzaHut_be.model.enums.OtpDestinationEnum;
 import PizzaHut_be.model.enums.OtpRequestTypeEnum;
 import PizzaHut_be.model.enums.StatusCodeEnum;
 import PizzaHut_be.model.mapper.CommonMapper;
-import PizzaHut_be.config.security.UserDetailImpl;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +34,7 @@ public class UserService {
     private final UserDao userDao;
     private final JwtService jwtService;
     private final CommonMapper mapper;
+    private final UserModelRepository userModelRepository;
 
     public UserModel getUserInfoFromContext() {
         try {
@@ -49,18 +48,30 @@ public class UserService {
 
             return null;
         }
-    }    /***
+    }
+
+
+    /***
      * Check if username is valid, and send OTP
      * @param loginOtpRequest
      * @return
      */
-    public ResponseEntity<ResponseDto<LoginOtpResponse>> requestLogin(LoginOtpRequest loginOtpRequest) {
+    public ResponseEntity<ResponseDto<LoginOtpResponse>> requestRegister(LoginOtpRequest loginOtpRequest) {
+
+        String email = loginOtpRequest.getEmail();
         String username = loginOtpRequest.getUsername();
+        UserModel userModel = userDao.findOneUserModel(username);
         LoginOtpResponse loginOtpResponse = new LoginOtpResponse();
         loginOtpResponse.setHasSentOtp(true);
 
-        return getCheckResponseByEmail(username, loginOtpResponse);
+        if (userModel != null) {
+            return ResponseBuilder.badRequestResponse("Account has been exits", StatusCodeEnum.LOGIN0201);
+        } else {
+            return getCheckResponseByEmail(email, loginOtpResponse);
+        }
+
     }
+
 
     private ResponseEntity<ResponseDto<LoginOtpResponse>> getCheckResponseByEmail(String username,
                                                                                   LoginOtpResponse loginOtpResponse) {
@@ -112,6 +123,24 @@ public class UserService {
     public UserResponse getLoginUserResponse(LoginRequest loginRequest) {
         String username = loginRequest.getUsername();
         String passwordOrOtp = loginRequest.getPassword();
+        UserModel userModel = userModelRepository.findByUsername(username).orElse(null);
+
+        if (userModel != null && userModel.getPassword().equals(passwordOrOtp)) {
+            UserResponse otpLoginResponse = new UserResponse<>();
+            otpLoginResponse.setUserModel(userModel);
+            otpLoginResponse.setNewUser(false);
+            if (otpLoginResponse != null) {
+                return otpLoginResponse;
+            }
+        }
+        return new UserResponse(null, ResponseBuilder.badRequestResponse(
+                "Login failed",
+                StatusCodeEnum.LOGIN0209), false);
+    }
+
+    public UserResponse getRegisterUserResponse(LoginRequest loginRequest) {
+        String username = loginRequest.getUsername();
+        String passwordOrOtp = loginRequest.getPassword();
         log.info(loginRequest.getUsername());
         UserModel userModel = userDao.findOneUserModel(username);
         log.info(userModel.getEmail(), userModel);
@@ -134,5 +163,35 @@ public class UserService {
             return userResponse;
         }
         return null;
+    }
+
+    public ResponseEntity<ResponseDto<RegisterResponse>> register(RegisterRequest registerRequest) {
+        String username = registerRequest.getUsername();
+        UserModel userModel = userDao.findOneUserModel(username);
+        String passwordOrOtp = registerRequest.getPasswordOrOtp();
+
+
+        if (userModel != null) {
+            return ResponseBuilder.badRequestResponse("Username is present!",
+                    StatusCodeEnum.LOGIN0201);
+        } else {
+
+            if (otpService.verifyOtp(registerRequest.getEmail(), OtpRequestTypeEnum.LOGIN, passwordOrOtp)) {
+                UserModel newUserModel = mapper.map(registerRequest, UserModel.class);
+                newUserModel.setId(UUID.randomUUID().toString());
+                userModelRepository.save(newUserModel);
+                RegisterResponse registerResponse = new RegisterResponse();
+                registerResponse = mapper.map(registerRequest, RegisterResponse.class);
+
+                return ResponseBuilder.okResponse(
+                        "Register successfully",
+                        registerResponse,
+                        StatusCodeEnum.LOGIN1204);
+            }else{
+                return ResponseBuilder.badRequestResponse("Verify OTP fail", StatusCodeEnum.OTP0001);
+            }
+
+        }
+
     }
 }

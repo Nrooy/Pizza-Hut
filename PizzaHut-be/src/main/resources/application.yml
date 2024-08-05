@@ -51,7 +51,7 @@ app:
       default: 180
 database:
   jdbcUrl : ${DB_URL:jdbc:mysql://localhost:3306/pizza_hut}
-  username: ${DB_USERNAME:root}
+  username: ${DB_USERNAME:data}
   password: ${DB_PASSWORD:30061999}
 
 hikari:
